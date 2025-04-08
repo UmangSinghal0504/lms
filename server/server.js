@@ -1,47 +1,35 @@
-import express from 'express'
-import cors from 'cors'
-import 'dotenv/config'
-import getRawBody from 'raw-body' // 👈 For Clerk webhook
-import connectDB from './configs/mongodb.js'
-import { clerkWebhooks } from './controllers/webhooks.js'
+import express from "express";
+import cors from "cors";
+import "dotenv/config";
+import connectDB from "./configs/mongodb.js";
+import { clerkWebhooks } from "./controllers/webhooks.js"; // ✅ Import from correct path
+import getRawBody from "raw-body"; // ✅ New import
 
-const app = express()
-const PORT = process.env.PORT || 5000
+const app = express();
+await connectDB();
 
-const startServer = async () => {
-  try {
-    // 1. Connect to MongoDB
-    await connectDB()
+// ✅ General Middleware
+app.use(cors());
 
-    // 2. Middlewares
-    app.use(cors())
-
-    // 3. Routes
-    app.get('/', (req, res) => res.send("✅ API Working"))
-
-    // 4. Clerk Webhook (with raw body middleware)
-    app.post(
-      '/clerk',
-      async (req, res, next) => {
-        req.rawBody = await getRawBody(req)
-        next()
-      },
-      express.json({
-        verify: (req, res, buf) => {
-          req.rawBody = buf
-        }
-      }),
-      clerkWebhooks
-    )
-
-    // 5. Start Server
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`)
+// ✅ Use rawBody middleware before /clerk route
+app.use("/clerk", (req, res, next) => {
+  getRawBody(req)
+    .then((buf) => {
+      req.rawBody = buf;
+      next();
     })
-  } catch (err) {
-    console.error('❌ Failed to start server:', err.message)
-    process.exit(1)
-  }
-}
+    .catch((err) => {
+      res.status(400).send("Invalid body");
+    });
+});
 
-startServer()
+// ✅ Route using clerkWebhooks without express.json
+app.post("/clerk", clerkWebhooks);
+
+// ✅ Other Routes
+app.get("/", (req, res) => res.send("API Working"));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});
