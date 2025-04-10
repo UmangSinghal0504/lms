@@ -34,13 +34,15 @@ app.use("/clerk", (req, res, next) => {
 // ✅ Route using clerkWebhooks without express.json
 app.post("/clerk", clerkWebhooks);
 
+app.post('/stripe', express.raw({ type: 'application/json'}), stripeWebhooks)
+
 // ✅ Other Routes
 app.get("/", (req, res) => res.send("API Working"));
 
 app.use('/api/educator', express.json(), educatorRouter);
 app.use('/api/course', express.json(), courseRouter);
 app.use('/api/user', express.json(), userRouter)
-app.post('/stripe', express.raw({ type: 'application/json'}), stripeWebhooks)
+
 
 
 const PORT = process.env.PORT || 5000;

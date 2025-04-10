@@ -76,12 +76,12 @@ export const clerkWebhooks = async (req, res) => {
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 export const stripeWebhooks = async (req, res) => {
-    const sig = request.headers['stripe-signature'];
+    const sig = req.headers['stripe-signature'];
 
     let event;
   
     try {
-      event = Stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      event = Stripe.webhooks.constructEvent(reqt.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
     }
     catch (err) {
       response.status(400).send(`Webhook Error: ${err.message}`);
@@ -94,8 +94,8 @@ export const stripeWebhooks = async (req, res) => {
       const paymentIntentId = paymentIntent.id;
 
       const session = await stripeInstance.checkout.sessions.list({
-        payment_intent: paymentIntentId
-      })
+        payment_intent: paymentIntentId,
+      });
 
       const { purchaseId } = session.data[0].metadata;
 
@@ -103,7 +103,7 @@ export const stripeWebhooks = async (req, res) => {
       const userData = await User.findById(purchaseData.userId)
       const courseData = await Course.findById(purchaseData.courseId.toString())
 
-      courseData.enrolledStudents.push(userData)
+      courseData.enrolledStudents.push(userData._id)
       await courseData.save()
 
       userData.enrolledCourses.push(courseData._id)
@@ -124,6 +124,7 @@ export const stripeWebhooks = async (req, res) => {
   
         const { purchaseId } = session.data[0].metadata;
         const purchaseData = await Purchase.findById(purchaseId)
+        
         purchaseData.status = 'failed'
         await purchaseData.save()
 
