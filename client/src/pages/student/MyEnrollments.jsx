@@ -1,12 +1,23 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AddContext'
 import {Line} from 'rc-progress'
 import Footer from '../../components/student/Footer'
+import Loading from '../../components/student/Loading'
 
 const MyEnrollments = () => {
   
   
   const {enrolledCourses, calculateCourseDuration, navigate} = useContext(AppContext)
+
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    },2000)
+    return () => clearTimeout(timer)
+  },[])
+
   const [progressArray, setProgressArray] = useState([
     {lectureCompleted: 2, totalLectures: 4},
     {lectureCompleted: 1, totalLectures: 5},
@@ -23,6 +34,8 @@ const MyEnrollments = () => {
     {lectureCompleted: 0, totalLectures: 4},
     {lectureCompleted: 5, totalLectures: 5}
   ])
+
+  if (loading) return <Loading />
 
   return (
     <>
@@ -70,7 +83,7 @@ const MyEnrollments = () => {
           </tbody>
         </table>
         </div>
-        <Footer />
+        <Footer /> 
         </>
   )
 }
