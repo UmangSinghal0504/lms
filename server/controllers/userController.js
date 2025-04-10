@@ -74,11 +74,14 @@ export const purchaseCourse = async (req, res) => {
 
             },
             quantity: 1
-        }]
+        }];
+
+          // 🔧 Clean trailing slash in origin (fix for // issue)
+          const cleanOrigin = origin.endsWith('/') ? origin.slice(0, -1) : origin;
 
         const session = await stripeInstance.checkout.sessions.create({
-            success_url: `${origin}/loading/my-enrollments`,
-            cancel_url: `${origin}/`,
+            success_url: `${cleanOrigin}/loading/my-enrollments`,
+            cancel_url: `${cleanOrigin}/`,
             line_items: line_items,
             mode: 'payment',
             metadata: {
