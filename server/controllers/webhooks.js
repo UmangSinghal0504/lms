@@ -81,10 +81,10 @@ export const stripeWebhooks = async (req, res) => {
     let event;
   
     try {
-      event = Stripe.webhooks.constructEvent(reqt.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      event = Stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
     }
     catch (err) {
-      response.status(400).send(`Webhook Error: ${err.message}`);
+      res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     // Handle the event
@@ -136,5 +136,5 @@ export const stripeWebhooks = async (req, res) => {
   }
 
   // Return a response to acknowledge receipt of the event
-  response.json({received: true});
+  res.json({received: true});
 }
