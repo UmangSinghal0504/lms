@@ -15,7 +15,7 @@ const app = express();
 await connectDB();
 await connectCloudinary();
 
-
+app.post('/stripe', express.raw({ type: 'application/json'}), stripeWebhooks);
 // ✅ General Middleware
 app.use(cors());
 app.use(clerkMiddleware())
@@ -35,7 +35,7 @@ app.use("/clerk", (req, res, next) => {
 // ✅ Route using clerkWebhooks without express.json
 app.post("/clerk", clerkWebhooks);
 
-app.post('/stripe', express.raw({ type: 'application/json'}), stripeWebhooks)
+
 
 // ✅ Other Routes
 app.get("/", (req, res) => res.send("API Working"));
