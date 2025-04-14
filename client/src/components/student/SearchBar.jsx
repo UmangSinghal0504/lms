@@ -1,40 +1,45 @@
 import React, { useState } from 'react';
-import { assets } from '../../assets/assets'; 
-import { useNavigate } from 'react-router-dom'; // Fixed typo: useNaigate -> useNavigate
+import { assets } from '../../assets/assets';
+import { useNavigate } from 'react-router-dom';
 
-const SearchBar = ({ data }) => {
-  const navigate = useNavigate(); // Fixed typo: useNaigate -> useNavigate
-  const [input, setInput] = useState(data ? data : '');
+const SearchBar = ({ initialValue = '' }) => {
+  const [input, setInput] = useState(initialValue);
+  const navigate = useNavigate();
 
-  const onSearchHandler = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/course-list/' + input);
+    if (input.trim()) {
+      navigate(`/course-list/${encodeURIComponent(input.trim())}`);
+    }
   };
 
   return (
-    <form
-      onSubmit={onSearchHandler}
-      className="max-w-xl w-full md:h-14 h-12 flex items-center bg-white border border-gray-500/20 rounded"
+    <form 
+      onSubmit={handleSubmit}
+      className="max-w-2xl w-full mx-auto"
     >
-      <img
-        src={assets.search_icon}
-        alt="search_icon"
-        className="md:w-auto w-10 px-3"
-      />
-
-      <input
-        onChange={(e) => setInput(e.target.value)}
-        value={input}
-        type="text"
-        placeholder="Search for courses"
-        className="w-full h-full outline-none text-gray-500/80"
-      />
-      <button
-        type="submit"
-        className="bg-blue-600 rounded text-white md:px-10 px-7 md:py-3 py-2 mx-1"
-      >
-        Search
-      </button>
+      <div className="relative flex items-center">
+        <div className="absolute left-3 text-gray-400">
+          <img 
+            src={assets.search_icon} 
+            alt="Search" 
+            className="w-5 h-5" 
+          />
+        </div>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Search for courses, instructors, or topics..."
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        />
+        <button
+          type="submit"
+          className="absolute right-2 bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 transition"
+        >
+          Search
+        </button>
+      </div>
     </form>
   );
 };

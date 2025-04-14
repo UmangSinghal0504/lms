@@ -1,60 +1,82 @@
-import React, { useContext, useEffect, useState } from 'react'
-
-import { AppContext } from '../../context/AddContext'
-import SearchBar from '../../components/student/SearchBar'
-import { useParams } from 'react-router-dom'
-import CourseCard from '../../components/student/CourseCard'
-import { assets } from '../../assets/assets'
-import Footer from '../../components/student/Footer'
+import React, { useContext, useEffect, useState } from 'react';
+import { AppContext } from '../../context/AddContext';
+import { useParams, useNavigate } from 'react-router-dom';
+import SearchBar from '../../components/student/SearchBar';
+import CourseCard from '../../components/student/CourseCard';
+import { assets } from '../../assets/assets';
+import Footer from '../../components/student/Footer';
+import Loading from '../../components/student/Loading';
 
 const CoursesList = () => {
-
-  const {navigateToCourse, allCourses} = useContext(AppContext)
-  const {input} = useParams()
-  const [filteredCourse, setFilteredCourses] = useState([])
+  const { allCourses, loading } = useContext(AppContext);
+  const { input } = useParams();
+  const navigate = useNavigate();
+  const [filteredCourses, setFilteredCourses] = useState([]);
 
   useEffect(() => {
-    if(allCourses && allCourses.length > 0){
-      const tempCourses = allCourses.slice()
-
-      input ?
-      setFilteredCourses(
-        tempCourses.filter(
-          item => item.courseTitle.toLowerCase().includes(input.toLowerCase())
-        )
-      )
-      : setFilteredCourses(tempCourses)
+    if (allCourses && allCourses.length > 0) {
+      const tempCourses = [...allCourses];
+      if (input) {
+        setFilteredCourses(
+          tempCourses.filter(item =>
+            item.courseTitle.toLowerCase().includes(input.toLowerCase())
+          )
+        );
+      } else {
+        setFilteredCourses(tempCourses);
+      }
     }
+  }, [allCourses, input]);
 
-  },[allCourses, input])
+  if (loading) return <Loading />;
+
   return (
     <>
-    <div className='relative md:px-36 px-8 pt-20 text-left'>
-      <div className='flex md:flex-row flex-col gap-6 items-start justify-between w-full'> 
-        <div>
-        <h1 className='text-4xl font-semibold text-gray-800'>Course List</h1>
-      <p className='text-gray-500'>
-        <span className='text-blue-600 cursor-pointer' onClick={() => navigateToCourse('/') }>Home</span> / <span>Course List</span></p>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Course Catalog</h1>
+            <nav className="text-sm text-gray-500 mt-2">
+              <span 
+                className="text-blue-600 hover:underline cursor-pointer" 
+                onClick={() => navigate('/')}
+              >
+                Home
+              </span>
+              <span> / Course List</span>
+            </nav>
+          </div>
+          <SearchBar data={input} />
         </div>
-      <SearchBar data={input} />
-      </div>
-      { input && <div className='inline-flex items-center gap-4 px-4 py-2 border mt-8 mb-8 text-gray-600'>
-      <p>{input}</p>
-      <img src={assets.cross_icon} alt='' className='cursor-pointer' onClick={() => navigateToCourse('/course-list')} />
-      </div>
 
-      }
+        {input && (
+          <div className="inline-flex items-center gap-3 px-4 py-2 border rounded-full mb-8 text-gray-600 bg-gray-50">
+            <span>{input}</span>
+            <button onClick={() => navigate('/course-list')}>
+              <img src={assets.cross_icon} alt="Clear search" className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredCourses.map((course) => (
+            <CourseCard 
+              key={course._id} 
+              course={course}
+              onClick={() => navigate(`/course/${course._id}`)}
+            />
+          ))}
+        </div>
 
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 my-16 gap-3 px-2 md:p-0 '>
-      {filteredCourse.map((course,index) => <CourseCard key={index} course={course} 
-      onClick={() => navigateToCourse(course._id)}/>)}
+        {filteredCourses.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No courses found matching your search.</p>
+          </div>
+        )}
       </div>
-    </div>
-    <Footer />
+      <Footer />
     </>
-    
-  )
-}
+  );
+};
 
-export default CoursesList
+export default CoursesList;

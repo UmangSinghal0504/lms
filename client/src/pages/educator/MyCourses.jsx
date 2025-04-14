@@ -1,74 +1,110 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { AppContext } from '../../context/AddContext'
-
+import React, { useContext, useEffect, useState } from 'react';
+import { AppContext } from '../../context/AddContext';
+import { Link } from 'react-router-dom';
+import Loading from '../../components/student/Loading';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const MyCourses = () => {
-
-  const {currency, allCourses} = useContext(AppContext)
-
-  const [courses, setCourses] = useState(null) 
-  const [loading, setLoading] = useState(true)
+  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext);
+  const [courses, setCourses] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchEducatorCourses = async () => {
-    setCourses(allCourses);
-    setLoading(false);
-  }
+    try {
+      const token = await getToken();
+      const { data } = await axios.get(`${backendUrl}/api/educator/courses`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        setCourses(data.courses);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchEducatorCourses()
-  },[])
+    if (isEducator) {
+      fetchEducatorCourses();
+    }
+  }, [isEducator]);
 
   if (loading) {
+    return <Loading />;
+  }
+
+  if (!courses || courses.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg text-gray-600">Loading My Courses...</p>
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium text-gray-900">No courses found</h3>
+        <p className="mt-2 text-gray-500">You haven't created any courses yet.</p>
+        <Link
+          to="/educator/add-course"
+          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+        >
+          Create Your First Course
+        </Link>
       </div>
     );
   }
 
-  return courses ? (
-    <div className='h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
-       <div className='w-full'>
-        <h2 className='pb-4 text-lg font-medium'>My Courses</h2>
-        <div className='flex flex-col items-center max-w-4xl w-full overflow-hidden
-        rounded-md bg-white border border-gray-500/20'>
-          <table className='md:table-auto table-fixed w-full overflow-hidden'>
-            <thead className='text-gray-900 border-b border-gray-500/20 text-sm text-left'>
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">My Courses</h1>
+        <Link
+          to="/educator/add-course"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+        >
+          Add New Course
+        </Link>
+      </div>
+
+      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
             <tr>
-              <th className='px-4 py-3 font-semibold truncate'>All Courses</th>
-              <th className='px-4 py-3 font-semibold truncate'>Earnings</th>
-              <th className='px-4 py-3 font-semibold truncate'>Students</th>
-              <th className='px-4 py-3 font-semibold truncate'>Published On</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             </tr>
-            </thead>
-            <tbody className='text-sm text-gray-500'>
-              {courses.map((course) => (
-                <tr key={course._id} className='border-b border-gray-500/20'>
-                  <td className='md:px-4 pl-2 md:pl-4 py-3 flex items-center
-                  space-x-3 truncate'>
-                    <img src={course.courseThumbnail} alt='Course Image' className='w-16' />
-                    <span className='truncate hidden md:block'>
-                    {course.courseTitle}
-                    </span>
-
-                  </td>
-                  <td className='px-4 py-3'>{currency} {Math.floor(course.enrolledStudents.length * (course.coursePrice - course.discount * course.coursePrice / 100))} </td>
-                  <td className='px-4 py-3'>{course.enrolledStudents.length}</td>
-                  <td className='px-4 py-3'>
-                    {new Date(course.createdAt).toLocaleDateString()}
-
-                  </td>
-                </tr>
-              ))}
-
-            </tbody>
-          </table>
-        </div>
-       </div>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {courses.map((course) => (
+              <tr key={course._id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10">
+                      <img className="h-10 w-10 rounded-md" src={course.courseThumbnail} alt={course.courseTitle} />
+                    </div>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">{course.courseTitle}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {course.enrolledStudents?.length || 0}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {currency}{(course.enrolledStudents?.length || 0) * course.coursePrice}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    Published
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-  ) : (
-    <div className="text-center text-gray-600 text-lg">No data available</div>
   );
 };
 
-export default MyCourses
+export default MyCourses;

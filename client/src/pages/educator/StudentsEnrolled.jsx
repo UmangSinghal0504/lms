@@ -1,66 +1,96 @@
-import React, { useEffect, useState } from 'react'
-import { dummyStudentEnrolled } from '../../assets/assets'
+import React, { useContext, useEffect, useState } from 'react';
+import { AppContext } from '../../context/AddContext';
+import Loading from '../../components/student/Loading';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const StudentsEnrolled = () => {
+  const { backendUrl, getToken, isEducator, loading } = useContext(AppContext);
+  const [enrolledstudents, setEnrolledStudents] = useState(null);
 
-  const [enrolledStudents, setEnrolledStudents] = useState(null)
-  const [loading,setLoading] = useState(false);
   const fetchEnrolledStudents = async () => {
-    setEnrolledStudents(dummyStudentEnrolled)
-  }
+    try {
+      const token = await getToken();
+      const { data } = await axios.get(
+        `${backendUrl}/api/educator/enrolled-students`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success && Array.isArray(data.enrolledstudents)) {
+        setEnrolledStudents(data.enrolledstudents.reverse());
+      } else {
+        setEnrolledStudents([]);
+        toast.error(data.message || 'Failed to fetch enrolled students');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Something went wrong');
+    }
+  };
 
   useEffect(() => {
-    fetchEnrolledStudents()
-  }, [])
+    if (isEducator) {
+      fetchEnrolledStudents();
+    }
+  }, [isEducator]);
 
-  if (loading) {
-    return (
-      <div className='min-h-screen flex items-center justify-center'>
-        <p className='text-lg text-gray-600'>Loading Student Enrolled...</p>
-      </div>
-    )
-  }
+  if (loading || !enrolledstudents) return <Loading />;
 
-  return enrolledStudents ? (
-    <div className='min-h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
-        <div className='flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20'>
-        <table className='table-fixed md:table-auto w-full overflow-hidden pb-4'>
-          <thead className='text-gray-900 border-b border-gray-500/20 text-sm text-left'>
-          <tr>
-            <th className='px-4 py-3 font-semibold text-center hidden sm:table-cell'>#</th>
-            <th className='px-4 py-3 font-semibold'>Student Name</th>
-            <th className='px-4 py-3 font-semibold'>Course Title</th>
-            <th className='px-4 py-3 font-semibold text-center hidden sm:table-cell'>Date</th>
-          </tr>
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-8">Enrolled Students</h1>
 
-          </thead>
-
-          <tbody>
-          {enrolledStudents.map((item, index) => (
-            <tr key={index} className='border-b border-gray-500/20'>
-              <td className='px-4 py-3 text-center hidden sm:table-cell'>
-                {index + 1}</td>
-                <td className='md:px-4 px-2 py-3 flex items-center space-x-3'>
-                  <img 
-                  src={item.student.imageUrl}
-                  alt='Profile'
-                  className='w-9 h-9 rounded-full'
-                  />
-                  <span className='truncate'>{item.student.name}</span>
-                </td>
-                <td className='px-4 py-3 truncate'>{item.courseTitle}</td>
-                <td className='px-4 py-3 hidden sm:table-cell'>{new Date(item.purchaseDate).toLocaleDateString()}</td>
-                 </tr>
-          ))}
-          </tbody>
-
-        </table>
-
+      {enrolledstudents.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No students have enrolled in your courses yet.</p>
         </div>
+      ) : (
+        <div className="bg-white shadow overflow-hidden rounded-lg">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Enrollment Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {enrolledstudents.map((student, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10">
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src={student.student?.imageUrl}
+                          alt={student.student?.name}
+                        />
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{student.student?.name}</div>
+                        <div className="text-sm text-gray-500">{student.student?.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {student.courseTitle}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                    {new Date(student.enrollmentDate).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {Math.round((student.progress || 0) * 100)}% Complete
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
-  ) : (
-    <div className='text-center text-gray-600 text-lg'>No data available</div>
-  )
-}
+  );
+};
 
-export default StudentsEnrolled
+export default StudentsEnrolled;

@@ -1,23 +1,34 @@
-import React from 'react'
-import { assets } from '../../assets/assets'
+import React from 'react';
+import { assets } from '../../assets/assets';
 
-const Companies = () => {
+const companies = [
+  { name: 'Microsoft', logo: assets.microsoft_logo },
+  { name: 'Walmart', logo: assets.walmart_logo },
+  { name: 'Accenture', logo: assets.accenture_logo },
+  { name: 'Adobe', logo: assets.adobe_logo },
+  { name: 'PayPal', logo: assets.paypal_logo },
+];
+
+export default function Companies() {
   return (
-    <div className='pt-16'>
-        <p className='text-base text-gray-500'>
-          Trusted by learners from 
-          </p>
-          <div className='flex flex-wrap items-center justify-center gap-6 md:gap-16 md:mt-10 mt-5'>
-            <img src={assets.microsoft_logo} alt='Microsoft' className='w-20 md:w-28'/>
-            <img src={assets.walmart_logo} alt='Walmart' className='w-20 md:w-28'/>
-            <img src={assets.accenture_logo} alt='Accenture' className='w-20 md:w-28'/>
-            <img src={assets.adobe_logo} alt='Adobe' className='w-20 md:w-28'/>
-            <img src={assets.paypal_logo} alt='Paypal' className='w-20 md:w-28'/>
-          </div>
-
-
-    </div>
-  )
+    <section className='bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
+      <div className='max-w-7xl mx-auto'>
+        <p className='text-center text-gray-500 mb-8'>
+          Trusted by professionals at leading companies worldwide
+        </p>
+        <div className='flex flex-wrap justify-center gap-8 md:gap-16'>
+          {companies.map((company) => (
+            <div key={company.name} className='flex items-center'>
+              <img 
+                src={company.logo} 
+                alt={company.name} 
+                className='h-8 object-contain opacity-70 hover:opacity-100 transition-opacity'
+                loading='lazy'
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
-
-export default Companies

@@ -1,18 +1,33 @@
-import React from 'react'
-import { assets } from '../../assets/assets'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const CallToAction = () => {
+export default function CallToAction() {
+  const navigate = useNavigate();
+
   return (
-    <div className='flex flex-col items-center gap-4 pt-10 pb-24 px-8 md:px-0'>
-        <h1 className='text-xl md:text-4xl text-gray-800 font-semibold'>Learn anything, anytime, anywhere</h1>
-        <p className='text-gray-500 sm:text-sm'>Incident are fleeing, begetting, desire, consectetur, be cillum anim id pardon some proident excepteusr commodo give it.
+    <section className='bg-white py-16 px-4 sm:px-6 lg:px-8 text-center'>
+      <div className='max-w-3xl mx-auto'>
+        <h2 className='text-3xl font-bold text-gray-900 mb-4'>
+          Learn anything, anytime, anywhere
+        </h2>
+        <p className='text-lg text-gray-600 mb-8'>
+          Join thousands of learners worldwide and start your learning journey today.
         </p>
-        <div className='flex items-center font-medium gap-6 mt-4'>
-          <button className='px-10 py-3 rounded-md text-white bg-blue-600'>Get started</button>
-          <button className='flex items-center gap-2'>Learn more <img src={assets.arrow_icon} alt='arrow_icon' /></button>
+        <div className='flex flex-col sm:flex-row justify-center gap-4'>
+          <button
+            onClick={() => navigate('/course-list')}
+            className='px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm'
+          >
+            Browse Courses
+          </button>
+          <button 
+            onClick={() => navigate('/sign-up')}
+            className='px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm'
+          >
+            Sign Up Free
+          </button>
         </div>
-    </div>
-  )
+      </div>
+    </section>
+  );
 }
-
-export default CallToAction

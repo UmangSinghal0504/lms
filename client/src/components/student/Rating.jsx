@@ -1,35 +1,51 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
-const Rating = ({initialRating, onRate}) => {
+const Rating = ({ initialRating = 0, onRate, readOnly = false, size = 'md' }) => {
+  const [rating, setRating] = useState(initialRating);
+  const [hoverRating, setHoverRating] = useState(0);
 
-  const [rating, setRating] = useState(initialRating || 0)
+  useEffect(() => {
+    setRating(initialRating);
+  }, [initialRating]);
 
-   const handleRating = (value) => {
-    setRating(value);
-    if(onRate) onRate(value)
-   }
+  const sizeClasses = {
+    sm: 'text-lg',
+    md: 'text-xl',
+    lg: 'text-2xl'
+  };
 
-   useEffect(()=> {
-    if(initialRating){
-      setRating(initialRating)
+  const handleClick = (value) => {
+    if (!readOnly) {
+      setRating(value);
+      if (onRate) onRate(value);
     }
-   },[initialRating]);
+  };
 
   return (
-    <div>
-        {Array.from({length: 5}, (_, index)=>{
-          const starValue = index + 1;
-          return (
-            <span key={index} className={`text-xl sm:text-2xl
-              cursor-pointer transition-colors ${starValue <= rating ?
-                'text-yellow-500' : 'text-gray-400'
-              }`}  onClick={() => handleRating(starValue)}>
-                &#9733;
-              </span>
-          )
-        })}
-        </div>
-  )
-}
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className={`${sizeClasses[size]} transition-colors ${star <= (hoverRating || rating) ? 'text-yellow-400' : 'text-gray-300'} ${!readOnly ? 'cursor-pointer' : 'cursor-default'}`}
+          onClick={() => handleClick(star)}
+          onMouseEnter={() => !readOnly && setHoverRating(star)}
+          onMouseLeave={() => !readOnly && setHoverRating(0)}
+          disabled={readOnly}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
+};
 
-export default Rating
+Rating.propTypes = {
+  initialRating: PropTypes.number,
+  onRate: PropTypes.func,
+  readOnly: PropTypes.bool,
+  size: PropTypes.oneOf(['sm', 'md', 'lg'])
+};
+
+export default Rating;
